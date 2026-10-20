@@ -42,8 +42,13 @@
   };
 
   /* ---------- меню ---------- */
-  var hdr = $('#hdr'), burger = $('#burger'), menuOpen = false;
+  var hdr = $('#hdr'), burger = $('#burger'), mmenu = $('#mmenu'), menuOpen = false;
   var setMenu = function (o) {
+    if (o) { /* центр круга — по фактическому положению кнопки при любом масштабе */
+      var r = burger.getBoundingClientRect();
+      mmenu.style.setProperty('--mx', (r.left + r.width / 2) + 'px');
+      mmenu.style.setProperty('--my', (r.top + r.height / 2) + 'px');
+    }
     menuOpen = o;
     document.body.classList.toggle('menu-open', o);
     burger.setAttribute('aria-expanded', o);
@@ -53,7 +58,7 @@
   };
   burger.addEventListener('click', function () { setMenu(!menuOpen); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && menuOpen) setMenu(false); });
-  $$('.mmenu a').forEach(function (a, i) { a.style.transitionDelay = (0.15 + i * 0.045) + 's'; });
+  $$('.mmenu a').forEach(function (a, i) { a.style.setProperty('--d', (0.15 + i * 0.045) + 's'); }); /* задержка только при открытии */
 
   /* ---------- якоря ---------- */
   $$('a[href^="#"]').forEach(function (a) {
