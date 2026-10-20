@@ -144,8 +144,13 @@
     email: function (v) { return !v.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()); },
     type: function (v) { return !!v; }
   };
+  /* отправка заявки: один запрос к send.php, цели — только после ответа сервера */
+  /* превью на GitHub Pages: заявки никуда не отправляются, форма показывает успешную отправку */
+  var DEMO = /\.github\.io$/i.test(location.hostname);
+  var sending = false, FAIL_MSG = 'Не удалось отправить заявку. Попробуйте ещё раз или позвоните нам: +7 (495) 085-10-95.';
   form.addEventListener('submit', function (e) {
     e.preventDefault();
+    if (sending) return;
     var ok = true, first = null;
     Object.keys(checks).forEach(function (n) {
       var el = form.elements[n], f = el.closest('.field'), bad = !checks[n](el.value);
@@ -154,9 +159,40 @@
       else el.removeAttribute('aria-invalid');
     });
     if (!ok) { first.focus(); return; }
-    /* отправка пока не подключена — показываем подтверждение */
+    sending = true;
+    submitBtn.disabled = true;
     submitBtn.classList.add('is-loading');
-    setTimeout(function () { form.classList.add('sent'); refreshLater(); }, 900);
+    if (DEMO) { setTimeout(function () { form.classList.add('sent'); refreshLater(); }, 700); return; }
+    fetch('/send.php', { method: 'POST', body: new FormData(form), headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+      .then(function (res) {
+        return res.text().then(function (txt) {
+          var json = null;
+          try { json = JSON.parse(txt); } catch (err) { /* ответ не JSON */ }
+          if (!res.ok || !json || !json.success) {
+            var er = new Error('send failed: ' + res.status);
+            er.userMessage = json && json.message ? json.message : '';
+            throw er;
+          }
+          return json;
+        });
+      })
+      .then(function () {
+        try { if (typeof ym === 'function') ym(113675622, 'reachGoal', 'audit'); } catch (err) { console.error('Яндекс Метрика:', err); }
+        try {
+          if (typeof Comagic !== 'undefined' && typeof Comagic.addOfflineRequest === 'function') {
+            Comagic.addOfflineRequest({ name: form.elements.name.value.trim(), phone: form.elements.phone.value.trim() });
+          }
+        } catch (err) { console.error('UIS:', err); }
+        form.classList.add('sent');
+        refreshLater();
+      })
+      .catch(function (err) {
+        console.error('Ошибка отправки формы:', err);
+        sending = false;
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('is-loading');
+        alert(err && err.userMessage ? err.userMessage : FAIL_MSG);
+      });
   });
 
   if (!anim) return; /* дальше — только анимации */

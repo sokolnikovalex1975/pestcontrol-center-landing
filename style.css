@@ -495,7 +495,7 @@ footer{border-top:1px solid var(--line);padding:clamp(56px,4.3vw,82px) 0 36px;ba
   .tl-txt p{margin-left:0!important}
   .cta-bg{background-image:url(img/cta-m.webp)}
   .msg a{width:44px;height:44px}
-  .ft{grid-template-columns:1fr 1fr}.ft>div:first-child{grid-column:1/-1}
+  .ft{grid-template-columns:1fr 1fr}.ft>div:first-child{grid-column:1/-1}.ft>div:last-child{grid-column:1/-1}
   .ft ul{gap:0}
   .ft li a,.fb a{display:inline-flex;align-items:center;min-height:44px;padding:0}
   .legal a{display:inline-block;padding:8px 0}
